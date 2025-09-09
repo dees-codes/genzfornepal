@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Search, MapPin, Phone, Menu, LogOut, Plus, CheckCircle, Database, Anchor } from "lucide-react";
+import { Heart, Search, MapPin, Phone, Menu, LogOut, Plus, CheckCircle, Database, Anchor, Navigation, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useNearbyHospitals } from "@/hooks/useNearbyHospitals";
 import { HospitalCard } from "@/components/HospitalCard";
 import { BloodRequestCard } from "@/components/BloodRequestCard";
 import { LoadingSpinner, LoadingOverlay } from "@/components/LoadingSpinner";
@@ -14,7 +16,7 @@ import type { Hospital, BloodRequest } from "@shared/schema";
 import nepalFlagImg from "@assets/nepal_1757378776656.png";
 import luffyFlagImg from "@assets/image_1757378783453.png";
 
-type TabType = 'hospitals' | 'blood' | 'admin';
+type TabType = 'hospitals' | 'blood' | 'admin' | 'nearby';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('hospitals');
@@ -31,7 +33,6 @@ export default function Home() {
     district: ''
   });
   const [showMenu, setShowMenu] = useState(false);
-  const [userLocation, setUserLocation] = useState('Dhaka, Bangladesh');
 
   // Public portal - no authentication required
   const user = null;
@@ -39,15 +40,50 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Geolocation
+  const { latitude, longitude, error: locationError, loading: locationLoading, refreshLocation } = useGeolocation();
+  
+  // Nearby hospitals
+  const { data: nearbyHospitals = [], isLoading: nearbyLoading } = useNearbyHospitals({
+    latitude,
+    longitude,
+    radius: 50, // 50km radius
+    enabled: activeTab === 'nearby',
+  });
+
   // Fetch hospitals
   const { data: hospitals = [], isLoading: hospitalsLoading } = useQuery<Hospital[]>({
-    queryKey: ['/api/hospitals', hospitalFilters, hospitalSearch],
+    queryKey: ['hospitals', hospitalFilters, hospitalSearch],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (hospitalFilters.district) params.append('district', hospitalFilters.district);
+      if (hospitalFilters.isFree) params.append('isFree', 'true');
+      if (hospitalFilters.isEmergency) params.append('isEmergency', 'true');
+      if (hospitalSearch) params.append('search', hospitalSearch);
+      
+      const url = `/api/hospitals${params.toString() ? `?${params.toString()}` : ''}`;
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
     enabled: activeTab === 'hospitals',
   });
 
   // Fetch blood requests  
   const { data: bloodRequests = [], isLoading: bloodLoading } = useQuery<BloodRequest[]>({
-    queryKey: ['/api/blood-requests', bloodFilters, bloodSearch],
+    queryKey: ['blood-requests', bloodFilters, bloodSearch],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (bloodFilters.bloodGroup) params.append('bloodGroup', bloodFilters.bloodGroup);
+      if (bloodFilters.urgency) params.append('urgency', bloodFilters.urgency);
+      if (bloodFilters.district) params.append('district', bloodFilters.district);
+      if (bloodSearch) params.append('search', bloodSearch);
+      
+      const url = `/api/blood-requests${params.toString() ? `?${params.toString()}` : ''}`;
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
     enabled: activeTab === 'blood',
   });
 
@@ -57,20 +93,6 @@ export default function Home() {
   const pendingData = { hospitals: [], bloodRequests: [] };
   const pendingLoading = false;
 
-  // Get user location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // In a real app, reverse geocode the coordinates
-          setUserLocation('📍 Location detected');
-        },
-        (error) => {
-          console.log('Location error:', error);
-        }
-      );
-    }
-  }, []);
 
   const handleCall = (phone: string) => {
     window.location.href = `tel:${phone}`;
@@ -86,26 +108,6 @@ export default function Home() {
     window.open(`https://www.google.com/maps/search/${encodedAddress}`, '_blank');
   };
 
-  const refreshLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation('📍 Location updated');
-          toast({
-            title: "Location updated",
-            description: "Your location has been refreshed",
-          });
-        },
-        (error) => {
-          toast({
-            title: "Location error",
-            description: "Could not update your location",
-            variant: "destructive",
-          });
-        }
-      );
-    }
-  };
 
   const handleEmergencyCall = () => {
     if (confirm('Call Nepal emergency services (102/103/108)?')) {
@@ -174,7 +176,7 @@ export default function Home() {
     <div className="bg-green-50 border-l-4 border-green-400 p-3 flex items-center space-x-2">
       <MapPin className="w-4 h-4 text-green-600 animate-pulse" />
       <span className="text-sm text-green-800" data-testid="text-user-location">
-        {userLocation}
+        {latitude && longitude ? `📍 ${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : 'Nepal'}
       </span>
       <Button
         variant="ghost"
@@ -377,7 +379,7 @@ export default function Home() {
         <Button
           variant="ghost"
           onClick={() => setActiveTab('hospitals')}
-          className={`flex-1 py-3 px-2 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
+          className={`flex-1 py-3 px-1 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
             activeTab === 'hospitals' ? 'text-primary' : 'text-muted-foreground'
           }`}
           data-testid="bottom-tab-hospitals"
@@ -388,8 +390,20 @@ export default function Home() {
         
         <Button
           variant="ghost"
+          onClick={() => setActiveTab('nearby')}
+          className={`flex-1 py-3 px-1 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
+            activeTab === 'nearby' ? 'text-primary' : 'text-muted-foreground'
+          }`}
+          data-testid="bottom-tab-nearby"
+        >
+          <Navigation className="h-4 w-4 mb-1" />
+          <span className="text-xs font-medium">Nearby</span>
+        </Button>
+        
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('blood')}
-          className={`flex-1 py-3 px-2 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
+          className={`flex-1 py-3 px-1 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
             activeTab === 'blood' ? 'text-primary' : 'text-muted-foreground'
           }`}
           data-testid="bottom-tab-blood"
@@ -401,7 +415,7 @@ export default function Home() {
         <Button
           variant="ghost"
           onClick={() => setActiveTab('admin')}
-          className={`flex-1 py-3 px-2 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
+          className={`flex-1 py-3 px-1 text-center min-h-[60px] flex flex-col items-center justify-center rounded-none ${
             activeTab === 'admin' ? 'text-primary' : 'text-muted-foreground'
           }`}
           data-testid="bottom-tab-admin"
@@ -441,6 +455,95 @@ export default function Home() {
                     onCall={handleCall}
                     onDirections={handleDirections}
                   />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'nearby' && (
+          <div data-testid="section-nearby">
+            <div className="p-4 bg-blue-50 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Nearby Hospitals</h3>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshLocation}
+                  disabled={locationLoading}
+                  className="text-xs"
+                >
+                  <Target className="h-3 w-3 mr-1" />
+                  {locationLoading ? 'Locating...' : 'Refresh'}
+                </Button>
+              </div>
+              
+              {locationError && (
+                <div className="mt-2 p-2 bg-red-100 border border-red-200 rounded text-sm text-red-700">
+                  <p>{locationError}</p>
+                  <p className="text-xs mt-1">Please enable location access to find nearby hospitals</p>
+                </div>
+              )}
+              
+              {latitude && longitude && (
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>📍 Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}</p>
+                  <p className="text-xs">Showing hospitals within 50km radius</p>
+                </div>
+              )}
+            </div>
+            
+            <div>
+              {nearbyLoading ? (
+                <div className="p-8 flex justify-center">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : locationError ? (
+                <div className="p-8 text-center">
+                  <Navigation className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-muted-foreground mb-2">Location access required</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Please enable location services to find nearby hospitals
+                  </p>
+                  <Button onClick={refreshLocation} variant="outline" size="sm">
+                    <Target className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Button>
+                </div>
+              ) : nearbyHospitals.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-muted-foreground mb-2">No hospitals found nearby</p>
+                  <p className="text-sm text-muted-foreground">
+                    Try expanding the search radius or check your location
+                  </p>
+                </div>
+              ) : (
+                nearbyHospitals.map((hospital: any) => (
+                  <div key={hospital.id} className="relative">
+                    <HospitalCard
+                      hospital={hospital}
+                      onCall={handleCall}
+                      onDirections={handleDirections}
+                    />
+                    <div className="absolute top-4 right-4 flex flex-col gap-1">
+                      <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium text-center">
+                        {hospital.distance}km away
+                      </div>
+                      {hospital.hasRoadDistance && hospital.roadDistance && (
+                        <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium text-center">
+                          {hospital.roadDistance}km by road
+                        </div>
+                      )}
+                      {!hospital.hasRoadDistance && (
+                        <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs text-center">
+                          Road route unavailable
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ))
               )}
             </div>

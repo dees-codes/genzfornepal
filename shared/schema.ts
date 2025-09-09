@@ -1,102 +1,95 @@
-import { sql } from 'drizzle-orm';
-import {
-  index,
-  jsonb,
-  pgTable,
-  timestamp,
-  varchar,
-  text,
-  boolean,
-  decimal,
-  integer,
-} from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table for Replit Auth
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
+// Type definitions for the application
+export interface User {
+  id: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  isAdmin: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-// User storage table for Replit Auth
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  isAdmin: boolean("is_admin").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export interface Hospital {
+  id: string;
+  name: string;
+  address: string;
+  district: string;
+  phone: string;
+  services: string;
+  latitude?: string;
+  longitude?: string;
+  isFree: boolean;
+  isVerified: boolean;
+  isEmergency: boolean;
+  openHours: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface HospitalWithDistance extends Hospital {
+  distance: number; // straight-line distance in km
+  roadDistance?: number | null; // road distance in km (if available)
+  hasRoadDistance?: boolean; // whether road distance was successfully calculated
+}
+
+export interface BloodRequest {
+  id: string;
+  bloodGroup: string;
+  unitsRequired: number;
+  patientName?: string;
+  hospitalId?: string;
+  hospitalName: string;
+  contactPerson: string;
+  contactPhone: string;
+  urgency: string; // 'critical', 'urgent', 'normal'
+  district: string;
+  isActive: boolean;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Validation schemas
+export const insertHospitalSchema = z.object({
+  name: z.string().min(1),
+  address: z.string().min(1),
+  district: z.string().min(1),
+  phone: z.string().min(1),
+  services: z.string().min(1),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
+  isFree: z.boolean().default(false),
+  isVerified: z.boolean().default(false),
+  isEmergency: z.boolean().default(true),
+  openHours: z.string().default("24/7"),
 });
 
-// Hospitals table
-export const hospitals = pgTable("hospitals", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  address: text("address").notNull(),
-  district: varchar("district").notNull(),
-  phone: varchar("phone").notNull(),
-  services: text("services").notNull(),
-  latitude: decimal("latitude", { precision: 10, scale: 8 }),
-  longitude: decimal("longitude", { precision: 11, scale: 8 }),
-  isFree: boolean("is_free").default(false),
-  isVerified: boolean("is_verified").default(false),
-  isEmergency: boolean("is_emergency").default(true),
-  openHours: varchar("open_hours").default("24/7"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const insertBloodRequestSchema = z.object({
+  bloodGroup: z.string().min(1),
+  unitsRequired: z.number().min(1),
+  patientName: z.string().optional(),
+  hospitalId: z.string().optional(),
+  hospitalName: z.string().min(1),
+  contactPerson: z.string().min(1),
+  contactPhone: z.string().min(1),
+  urgency: z.enum(['critical', 'urgent', 'normal']),
+  district: z.string().min(1),
+  isActive: z.boolean().default(true),
+  isVerified: z.boolean().default(false),
 });
 
-// Blood requests table
-export const bloodRequests = pgTable("blood_requests", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  bloodGroup: varchar("blood_group").notNull(),
-  unitsRequired: integer("units_required").notNull(),
-  patientName: varchar("patient_name"),
-  hospitalId: varchar("hospital_id").references(() => hospitals.id),
-  hospitalName: text("hospital_name").notNull(),
-  contactPerson: varchar("contact_person").notNull(),
-  contactPhone: varchar("contact_phone").notNull(),
-  urgency: varchar("urgency").notNull(), // 'critical', 'urgent', 'normal'
-  district: varchar("district").notNull(),
-  isActive: boolean("is_active").default(true),
-  isVerified: boolean("is_verified").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const upsertUserSchema = z.object({
+  id: z.string(),
+  email: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  profileImageUrl: z.string().optional(),
 });
 
-// Insert schemas
-export const insertHospitalSchema = createInsertSchema(hospitals).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertBloodRequestSchema = createInsertSchema(bloodRequests).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const upsertUserSchema = createInsertSchema(users).pick({
-  id: true,
-  email: true,
-  firstName: true,
-  lastName: true,
-  profileImageUrl: true,
-});
-
-// Types
+// Types from schemas
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type Hospital = typeof hospitals.$inferSelect;
-export type BloodRequest = typeof bloodRequests.$inferSelect;
 export type InsertHospital = z.infer<typeof insertHospitalSchema>;
 export type InsertBloodRequest = z.infer<typeof insertBloodRequestSchema>;
