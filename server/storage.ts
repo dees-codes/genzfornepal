@@ -109,7 +109,7 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
     
-    return query.orderBy(desc(hospitals.updatedAt));
+    return await query.orderBy(desc(hospitals.updatedAt));
   }
 
   async getHospitalById(id: string): Promise<Hospital | undefined> {
@@ -169,7 +169,7 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
     
-    return query.orderBy(
+    return await query.orderBy(
       asc(sql`CASE 
         WHEN ${bloodRequests.urgency} = 'critical' THEN 1 
         WHEN ${bloodRequests.urgency} = 'urgent' THEN 2 

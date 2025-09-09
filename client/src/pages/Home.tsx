@@ -31,30 +31,47 @@ export default function Home() {
   const [showMenu, setShowMenu] = useState(false);
   const [userLocation, setUserLocation] = useState('Dhaka, Bangladesh');
 
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth() as {
+    user: {
+      id: string;
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      isAdmin?: boolean;
+    } | null;
+    isAuthenticated: boolean;
+  };
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch hospitals
-  const { data: hospitals = [], isLoading: hospitalsLoading } = useQuery({
+  const { data: hospitals = [], isLoading: hospitalsLoading } = useQuery<Hospital[]>({
     queryKey: ['/api/hospitals', hospitalFilters, hospitalSearch],
     enabled: activeTab === 'hospitals',
   });
 
   // Fetch blood requests  
-  const { data: bloodRequests = [], isLoading: bloodLoading } = useQuery({
+  const { data: bloodRequests = [], isLoading: bloodLoading } = useQuery<BloodRequest[]>({
     queryKey: ['/api/blood-requests', bloodFilters, bloodSearch],
     enabled: activeTab === 'blood',
   });
 
   // Fetch admin stats
-  const { data: adminStats, isLoading: adminStatsLoading } = useQuery({
+  const { data: adminStats, isLoading: adminStatsLoading } = useQuery<{
+    totalHospitals: number;
+    activeBloodRequests: number;
+    pendingVerifications: number;
+    lastUpdated: string;
+  }>({
     queryKey: ['/api/admin/stats'],
     enabled: activeTab === 'admin' && user?.isAdmin,
   });
 
   // Fetch pending verifications
-  const { data: pendingData, isLoading: pendingLoading } = useQuery({
+  const { data: pendingData, isLoading: pendingLoading } = useQuery<{
+    hospitals: Hospital[];
+    bloodRequests: BloodRequest[];
+  }>({
     queryKey: ['/api/admin/pending'],
     enabled: activeTab === 'admin' && user?.isAdmin,
   });
