@@ -11,7 +11,6 @@ import { BloodRequestCard } from "@/components/BloodRequestCard";
 import { LoadingSpinner, LoadingOverlay } from "@/components/LoadingSpinner";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Hospital, BloodRequest } from "@shared/schema";
-import jollyRogerImg from "@assets/image_1757377928357.png";
 import nepalFlagImg from "@assets/nepal_1757377953102.png";
 
 type TabType = 'hospitals' | 'blood' | 'admin';
@@ -129,29 +128,23 @@ export default function Home() {
   };
 
   const handleEmergencyCall = () => {
-    if (confirm('Call emergency services (999)?')) {
-      window.location.href = 'tel:999';
+    if (confirm('Call Nepal emergency services (102/103/108)?')) {
+      window.location.href = 'tel:102';
     }
   };
 
   const renderHeader = () => (
-    <header className="nepal-gradient text-white p-4 sticky top-0 z-40 shadow-lg">
+    <header className="bg-primary text-primary-foreground p-4 sticky top-0 z-40">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white rounded-full p-1">
-            <img 
-              src={jollyRogerImg} 
-              alt="Crew Flag" 
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <Heart className="w-5 h-5" />
           <div>
-            <h1 className="text-lg font-bold">🏴‍☠️ Medical Crew</h1>
-            <p className="text-xs opacity-90">Nepal Adventure</p>
+            <h1 className="text-lg font-bold">Emergency Health</h1>
+            <p className="text-xs opacity-90">Nepal</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-5">
+          <div className="w-6 h-5 opacity-80">
             <img 
               src={nepalFlagImg} 
               alt="Nepal" 
@@ -162,7 +155,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={() => setShowMenu(!showMenu)}
-            className="text-white hover:bg-white/10 min-h-[44px] min-w-[44px]"
+            className="text-primary-foreground hover:bg-primary-foreground/10 min-h-[44px] min-w-[44px]"
             data-testid="button-menu"
           >
             <Menu className="w-5 h-5" />
@@ -230,7 +223,7 @@ export default function Home() {
           }`}
           data-testid="tab-hospitals"
         >
-          ⚓ Medical Ports
+          🏥 Hospitals
         </Button>
         <Button
           variant="ghost"
@@ -242,19 +235,19 @@ export default function Home() {
           }`}
           data-testid="tab-blood"
         >
-          🩸 Blood Treasure
+          🩸 Blood Banks
         </Button>
         <Button
           variant="ghost"
           onClick={() => setActiveTab('admin')}
           className={`flex-1 py-3 px-4 text-sm font-medium rounded-none ${
             activeTab === 'admin' 
-              ? 'text-primary border-b-2 border-primary bg-yellow-50' 
+              ? 'text-primary border-b-2 border-primary bg-accent' 
               : 'text-muted-foreground hover:text-foreground'
           }`}
           data-testid="tab-admin"
         >
-          🏴‍☠️ Captain's Deck
+          🛡️ Admin
         </Button>
       </div>
     </nav>
@@ -470,7 +463,7 @@ export default function Home() {
           </Button>
           
           <Button 
-            className="w-full bg-gray-600 text-white hover:bg-gray-700 py-3 px-4 rounded-lg font-medium min-h-[44px] flex items-center justify-center"
+            className="w-full bg-muted text-muted-foreground hover:bg-muted/90 py-3 px-4 rounded-lg font-medium min-h-[44px] flex items-center justify-center"
             data-testid="button-manage-database"
           >
             <Database className="w-4 h-4 mr-2" />

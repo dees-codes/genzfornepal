@@ -1,81 +1,67 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Hospital, Droplets, Shield, Anchor } from "lucide-react";
-import jollyRogerImg from "@assets/image_1757377928357.png";
 import nepalFlagImg from "@assets/nepal_1757377953102.png";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen nepal-gradient">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="max-w-md mx-auto">
         {/* Hero Section */}
-        <div className="text-center py-8 px-4 relative">
-          {/* Nepal Flag */}
-          <div className="absolute top-4 right-4 w-12 h-10">
+        <div className="text-center py-12 px-4 relative">
+          {/* Nepal Flag - subtle positioning */}
+          <div className="absolute top-4 right-4 w-8 h-6 opacity-80">
             <img 
               src={nepalFlagImg} 
-              alt="Nepal Flag" 
+              alt="Nepal" 
               className="w-full h-full object-contain"
             />
           </div>
           
-          <div className="mb-6 bounce-in">
-            {/* One Piece Jolly Roger */}
-            <div className="w-20 h-20 mx-auto mb-4 straw-hat-border bg-white p-2 jolly-roger">
-              <img 
-                src={jollyRogerImg} 
-                alt="Straw Hat Pirates Flag" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
-              🏴‍☠️ Medical Adventure Crew
+          <div className="mb-6">
+            <Heart className="w-16 h-16 text-primary mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Emergency Health
             </h1>
-            <p className="text-white/90 drop-shadow">
-              Navigate the Grand Line of Hospitals & Blood Banks in Nepal! 🇳🇵
+            <p className="text-muted-foreground">
+              Find hospitals and blood donors instantly during emergencies in Nepal
             </p>
           </div>
         </div>
 
-        {/* Adventure Features */}
+        {/* Features */}
         <div className="px-4 space-y-4 mb-8">
-          <Card className="adventure-card border-0">
+          <Card>
             <CardContent className="p-4 flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full nepal-blue flex items-center justify-center">
-                <Hospital className="w-6 h-6 text-white" />
-              </div>
+              <Hospital className="w-8 h-8 text-primary" />
               <div>
-                <h3 className="font-semibold text-gray-800">⚓ Hospital Navigator</h3>
-                <p className="text-sm text-gray-600">
-                  Chart your course to Nepal's finest medical ports
+                <h3 className="font-semibold">Hospital Finder</h3>
+                <p className="text-sm text-muted-foreground">
+                  Locate nearby hospitals with real-time availability
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="adventure-card border-0">
+          <Card>
             <CardContent className="p-4 flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full nepal-red flex items-center justify-center">
-                <Droplets className="w-6 h-6 text-white" />
-              </div>
+              <Droplets className="w-8 h-8 text-destructive" />
               <div>
-                <h3 className="font-semibold text-gray-800">🩸 Blood Treasure Hunt</h3>
-                <p className="text-sm text-gray-600">
-                  Join the crew's mission to save lives across Nepal
+                <h3 className="font-semibold">Blood Requests</h3>
+                <p className="text-sm text-muted-foreground">
+                  Find urgent blood requests and connect with donors
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="adventure-card border-0">
+          <Card>
             <CardContent className="p-4 flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              <Shield className="w-8 h-8 text-green-600" />
               <div>
-                <h3 className="font-semibold text-gray-800">🏴‍☠️ Verified Crew Intel</h3>
-                <p className="text-sm text-gray-600">
-                  Trustworthy information verified by our medical crew
+                <h3 className="font-semibold">Verified Information</h3>
+                <p className="text-sm text-muted-foreground">
+                  Admin-verified and up-to-date medical information
                 </p>
               </div>
             </CardContent>
@@ -86,14 +72,14 @@ export default function Landing() {
         <div className="px-4 pb-8">
           <Button 
             onClick={() => window.location.href = '/api/login'}
-            className="w-full bg-white text-primary hover:bg-gray-50 py-4 text-lg font-bold min-h-[56px] shadow-lg border-4 border-yellow-400"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-4 text-lg font-semibold min-h-[56px]"
             data-testid="button-login"
           >
-            ⚓ Join the Medical Crew! 🏴‍☠️
+            Get Started - Login to Continue
           </Button>
           
-          <p className="text-center text-xs text-white/80 mt-4 drop-shadow">
-            Set sail on your medical adventure across Nepal!
+          <p className="text-center text-xs text-muted-foreground mt-4">
+            Secure authentication powered by Replit
           </p>
         </div>
 
@@ -105,10 +91,10 @@ export default function Landing() {
                 window.location.href = 'tel:102';
               }
             }}
-            className="w-14 h-14 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 flex items-center justify-center fab-emergency straw-hat-border border-yellow-400"
+            className="w-14 h-14 bg-destructive text-destructive-foreground rounded-full shadow-lg hover:bg-destructive/90 flex items-center justify-center"
             data-testid="button-emergency"
           >
-            🚨
+            📞
           </Button>
         </div>
       </div>
