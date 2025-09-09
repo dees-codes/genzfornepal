@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Hospital, Droplets, Shield, Anchor } from "lucide-react";
-import nepalFlagImg from "@assets/nepal_1757377953102.png";
+import nepalFlagImg from "@assets/nepal_1757378776656.png";
+import luffyFlagImg from "@assets/image_1757378783453.png";
 
 export default function Landing() {
   return (
@@ -9,8 +10,15 @@ export default function Landing() {
       <div className="max-w-md mx-auto">
         {/* Hero Section */}
         <div className="text-center py-12 px-4 relative">
-          {/* Nepal Flag - subtle positioning */}
-          <div className="absolute top-4 right-4 w-8 h-6 opacity-80">
+          {/* Flag display */}
+          <div className="absolute top-4 left-4 w-8 h-8">
+            <img 
+              src={luffyFlagImg} 
+              alt="One Piece" 
+              className="w-full h-full object-contain rounded"
+            />
+          </div>
+          <div className="absolute top-4 right-4 w-8 h-6">
             <img 
               src={nepalFlagImg} 
               alt="Nepal" 
@@ -21,7 +29,7 @@ export default function Landing() {
           <div className="mb-6">
             <Heart className="w-16 h-16 text-primary mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Emergency Health
+              Gen Z for Nepal
             </h1>
             <p className="text-muted-foreground">
               Find hospitals and blood donors instantly during emergencies in Nepal
@@ -71,15 +79,15 @@ export default function Landing() {
         {/* Call to Action */}
         <div className="px-4 pb-8">
           <Button 
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => window.location.reload()}
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-4 text-lg font-semibold min-h-[56px]"
-            data-testid="button-login"
+            data-testid="button-enter"
           >
-            Get Started - Login to Continue
+            Enter Gen Z for Nepal Portal
           </Button>
           
           <p className="text-center text-xs text-muted-foreground mt-4">
-            Secure authentication powered by Replit
+            Free access to Nepal's emergency health information
           </p>
         </div>
 

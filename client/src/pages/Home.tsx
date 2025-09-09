@@ -11,7 +11,8 @@ import { BloodRequestCard } from "@/components/BloodRequestCard";
 import { LoadingSpinner, LoadingOverlay } from "@/components/LoadingSpinner";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Hospital, BloodRequest } from "@shared/schema";
-import nepalFlagImg from "@assets/nepal_1757377953102.png";
+import nepalFlagImg from "@assets/nepal_1757378776656.png";
+import luffyFlagImg from "@assets/image_1757378783453.png";
 
 type TabType = 'hospitals' | 'blood' | 'admin';
 
@@ -32,16 +33,9 @@ export default function Home() {
   const [showMenu, setShowMenu] = useState(false);
   const [userLocation, setUserLocation] = useState('Dhaka, Bangladesh');
 
-  const { user, isAuthenticated } = useAuth() as {
-    user: {
-      id: string;
-      email?: string;
-      firstName?: string;
-      lastName?: string;
-      isAdmin?: boolean;
-    } | null;
-    isAuthenticated: boolean;
-  };
+  // Public portal - no authentication required
+  const user = null;
+  const isAuthenticated = false;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -57,25 +51,11 @@ export default function Home() {
     enabled: activeTab === 'blood',
   });
 
-  // Fetch admin stats
-  const { data: adminStats, isLoading: adminStatsLoading } = useQuery<{
-    totalHospitals: number;
-    activeBloodRequests: number;
-    pendingVerifications: number;
-    lastUpdated: string;
-  }>({
-    queryKey: ['/api/admin/stats'],
-    enabled: activeTab === 'admin' && user?.isAdmin,
-  });
-
-  // Fetch pending verifications
-  const { data: pendingData, isLoading: pendingLoading } = useQuery<{
-    hospitals: Hospital[];
-    bloodRequests: BloodRequest[];
-  }>({
-    queryKey: ['/api/admin/pending'],
-    enabled: activeTab === 'admin' && user?.isAdmin,
-  });
+  // Admin features disabled in public portal
+  const adminStats = { totalHospitals: 0, activeBloodRequests: 0, pendingVerifications: 0, lastUpdated: new Date().toISOString() };
+  const adminStatsLoading = false;
+  const pendingData = { hospitals: [], bloodRequests: [] };
+  const pendingLoading = false;
 
   // Get user location
   useEffect(() => {
@@ -137,14 +117,20 @@ export default function Home() {
     <header className="bg-primary text-primary-foreground p-4 sticky top-0 z-40">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Heart className="w-5 h-5" />
+          <div className="w-6 h-6">
+            <img 
+              src={luffyFlagImg} 
+              alt="One Piece" 
+              className="w-full h-full object-contain rounded"
+            />
+          </div>
           <div>
-            <h1 className="text-lg font-bold">Emergency Health</h1>
-            <p className="text-xs opacity-90">Nepal</p>
+            <h1 className="text-lg font-bold">Gen Z for Nepal</h1>
+            <p className="text-xs opacity-90">Health Portal</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-5 opacity-80">
+          <div className="w-6 h-5 opacity-90">
             <img 
               src={nepalFlagImg} 
               alt="Nepal" 
@@ -168,24 +154,16 @@ export default function Home() {
           <div className="p-4 space-y-2">
             <div className="flex items-center space-x-3 pb-2 border-b">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground">
-                {user?.firstName?.[0] || 'U'}
+                GZ
               </div>
               <div>
-                <p className="font-medium text-foreground">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                <p className="font-medium text-foreground">Gen Z for Nepal</p>
+                <p className="text-xs text-muted-foreground">Public Health Portal</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => window.location.href = '/api/logout'}
-              className="w-full justify-start text-foreground hover:bg-muted"
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <div className="text-sm text-muted-foreground">
+              Free access to Nepal's emergency health information
+            </div>
           </div>
         </div>
       )}
@@ -373,23 +351,24 @@ export default function Home() {
   );
 
   const renderAdminPanel = () => {
-    if (!user?.isAdmin) {
-      return (
-        <div className="p-4">
-          <div className="max-w-sm mx-auto mt-8 text-center">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                🛡️
-              </div>
-              <h2 className="text-xl font-bold">Access Denied</h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                You need admin privileges to access this section
-              </p>
+    return (
+      <div className="p-4">
+        <div className="max-w-sm mx-auto mt-8 text-center">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              🛡️
             </div>
+            <h2 className="text-xl font-bold">Admin Panel</h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Admin features are not available in the public portal version
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              This is a public information portal for emergency health services
+            </p>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
 
     return (
       <div>

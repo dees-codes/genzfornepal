@@ -9,17 +9,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Public info routes - no auth required
 
   // Hospital routes
   app.get('/api/hospitals', async (req, res) => {
@@ -51,57 +41,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/hospitals', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const validatedData = insertHospitalSchema.parse(req.body);
-      const hospital = await storage.createHospital(validatedData);
-      res.status(201).json(hospital);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      console.error("Error creating hospital:", error);
-      res.status(500).json({ message: "Failed to create hospital" });
-    }
+  // Admin routes temporarily disabled for public portal
+  app.post('/api/hospitals', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
-  app.put('/api/hospitals/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const validatedData = insertHospitalSchema.partial().parse(req.body);
-      const hospital = await storage.updateHospital(req.params.id, validatedData);
-      res.json(hospital);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      console.error("Error updating hospital:", error);
-      res.status(500).json({ message: "Failed to update hospital" });
-    }
+  app.put('/api/hospitals/:id', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
-  app.delete('/api/hospitals/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      await storage.deleteHospital(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting hospital:", error);
-      res.status(500).json({ message: "Failed to delete hospital" });
-    }
+  app.delete('/api/hospitals/:id', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
   app.put('/api/hospitals/:id/verify', isAuthenticated, async (req: any, res) => {
@@ -149,57 +99,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/blood-requests', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const validatedData = insertBloodRequestSchema.parse(req.body);
-      const request = await storage.createBloodRequest(validatedData);
-      res.status(201).json(request);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      console.error("Error creating blood request:", error);
-      res.status(500).json({ message: "Failed to create blood request" });
-    }
+  app.post('/api/blood-requests', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
-  app.put('/api/blood-requests/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const validatedData = insertBloodRequestSchema.partial().parse(req.body);
-      const request = await storage.updateBloodRequest(req.params.id, validatedData);
-      res.json(request);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      console.error("Error updating blood request:", error);
-      res.status(500).json({ message: "Failed to update blood request" });
-    }
+  app.put('/api/blood-requests/:id', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
-  app.delete('/api/blood-requests/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      await storage.deleteBloodRequest(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting blood request:", error);
-      res.status(500).json({ message: "Failed to delete blood request" });
-    }
+  app.delete('/api/blood-requests/:id', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
   app.put('/api/blood-requests/:id/verify', isAuthenticated, async (req: any, res) => {
@@ -217,45 +126,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes
-  app.get('/api/admin/pending', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const pending = await storage.getPendingVerifications();
-      res.json(pending);
-    } catch (error) {
-      console.error("Error fetching pending verifications:", error);
-      res.status(500).json({ message: "Failed to fetch pending verifications" });
-    }
+  // Admin routes disabled for public portal
+  app.get('/api/admin/pending', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
-  app.get('/api/admin/stats', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const [hospitals, bloodRequests, pending] = await Promise.all([
-        storage.getHospitals(),
-        storage.getBloodRequests({ isActive: true }),
-        storage.getPendingVerifications(),
-      ]);
-
-      res.json({
-        totalHospitals: hospitals.length,
-        activeBloodRequests: bloodRequests.length,
-        pendingVerifications: pending.hospitals.length + pending.bloodRequests.length,
-        lastUpdated: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Failed to fetch admin stats" });
-    }
+  app.get('/api/admin/stats', async (req: any, res) => {
+    res.status(403).json({ message: "Admin features not available in public portal" });
   });
 
   const httpServer = createServer(app);
