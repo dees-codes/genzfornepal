@@ -6,16 +6,18 @@ interface UseNearbyHospitalsProps {
   longitude: number | null;
   radius?: number;
   enabled?: boolean;
+  source?: 'osm' | 'mock';
 }
 
 export function useNearbyHospitals({ 
   latitude, 
   longitude, 
   radius = 50, 
-  enabled = true 
+  enabled = true,
+  source = 'osm'
 }: UseNearbyHospitalsProps) {
   return useQuery<HospitalWithDistance[]>({
-    queryKey: ['nearby-hospitals', latitude, longitude, radius],
+    queryKey: ['nearby-hospitals', latitude, longitude, radius, source],
     queryFn: async () => {
       if (!latitude || !longitude) {
         throw new Error('Location coordinates are required');
@@ -25,6 +27,7 @@ export function useNearbyHospitals({
         lat: latitude.toString(),
         lng: longitude.toString(),
         radius: radius.toString(),
+        source: source,
       });
 
       const url = `/api/hospitals/nearby?${params.toString()}`;

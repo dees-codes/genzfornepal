@@ -34,6 +34,28 @@ export default function Home() {
   });
   const [showMenu, setShowMenu] = useState(false);
 
+  // Manual coordinate override state
+  const [useManualCoords, setUseManualCoords] = useState(false);
+  const [manualLat, setManualLat] = useState<string>('');
+  const [manualLng, setManualLng] = useState<string>('');
+  const [manualRadius, setManualRadius] = useState<string>('50');
+  const [dataSource, setDataSource] = useState<'osm' | 'mock'>('osm');
+
+  // Initialize from URL params if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pLat = params.get('lat');
+    const pLng = params.get('lng');
+    const pRadius = params.get('radius');
+    if (pLat && pLng) {
+      setUseManualCoords(true);
+      setManualLat(pLat);
+      setManualLng(pLng);
+      if (pRadius) setManualRadius(pRadius);
+      setActiveTab('nearby');
+    }
+  }, []);
+
   // Public portal - no authentication required
   const user = null;
   const isAuthenticated = false;
@@ -42,13 +64,19 @@ export default function Home() {
 
   // Geolocation
   const { latitude, longitude, error: locationError, loading: locationLoading, refreshLocation } = useGeolocation();
-  
+
+  // Effective coordinates (manual override takes precedence when enabled)
+  const effectiveLatitude: number | null = useManualCoords && manualLat !== '' ? Number(manualLat) : (latitude ?? null);
+  const effectiveLongitude: number | null = useManualCoords && manualLng !== '' ? Number(manualLng) : (longitude ?? null);
+  const effectiveRadius: number = useManualCoords && manualRadius !== '' ? Number(manualRadius) : 50;
+
   // Nearby hospitals
   const { data: nearbyHospitals = [], isLoading: nearbyLoading } = useNearbyHospitals({
-    latitude,
-    longitude,
-    radius: 50, // 50km radius
-    enabled: activeTab === 'nearby',
+    latitude: effectiveLatitude,
+    longitude: effectiveLongitude,
+    radius: effectiveRadius,
+    enabled: activeTab === 'nearby' && effectiveLatitude !== null && effectiveLongitude !== null,
+    source: dataSource,
   });
 
   // Fetch hospitals
@@ -176,7 +204,9 @@ export default function Home() {
     <div className="bg-green-50 border-l-4 border-green-400 p-3 flex items-center space-x-2">
       <MapPin className="w-4 h-4 text-green-600 animate-pulse" />
       <span className="text-sm text-green-800" data-testid="text-user-location">
-        {latitude && longitude ? `📍 ${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : 'Nepal'}
+        {effectiveLatitude !== null && effectiveLongitude !== null 
+          ? `📍 ${effectiveLatitude.toFixed(4)}, ${effectiveLongitude.toFixed(4)}${useManualCoords ? ' (Manual)' : ''}` 
+          : 'Nepal'}
       </span>
       <Button
         variant="ghost"
@@ -480,28 +510,106 @@ export default function Home() {
                   {locationLoading ? 'Locating...' : 'Refresh'}
                 </Button>
               </div>
-              
-              {locationError && (
+
+              {/* Data source and manual coordinates controls */}
+              <div className="mt-3 bg-white border rounded p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Data Source:</label>
+                    <select 
+                      value={dataSource} 
+                      onChange={(e) => setDataSource(e.target.value as 'osm' | 'mock')}
+                      className="text-xs border rounded px-2 py-1"
+                    >
+                      <option value="osm">🌍 Live Data (OpenStreetMap)</option>
+                      <option value="mock">🏥 Curated Nepal Hospitals</option>
+                    </select>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {dataSource === 'osm' ? 'Real-time' : 'Verified'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    id="toggle-manual"
+                    type="checkbox"
+                    checked={useManualCoords}
+                    onChange={(e) => setUseManualCoords(e.target.checked)}
+                  />
+                  <label htmlFor="toggle-manual" className="text-sm">Enter coordinates manually</label>
+                </div>
+                {useManualCoords && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Latitude"
+                      value={manualLat}
+                      onChange={(e) => setManualLat(e.target.value)}
+                    />
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Longitude"
+                      value={manualLng}
+                      onChange={(e) => setManualLng(e.target.value)}
+                    />
+                    <Input
+                      type="number"
+                      step="1"
+                      min={1}
+                      placeholder="Radius (km)"
+                      value={manualRadius}
+                      onChange={(e) => setManualRadius(e.target.value)}
+                    />
+                  </div>
+                )}
+                {useManualCoords && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const params = new URLSearchParams(window.location.search);
+                        if (manualLat && manualLng) {
+                          params.set('lat', manualLat);
+                          params.set('lng', manualLng);
+                        }
+                        if (manualRadius) params.set('radius', manualRadius);
+                        const newUrl = `${window.location.pathname}?${params.toString()}`;
+                        window.history.replaceState({}, '', newUrl);
+                      }}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {locationError && !useManualCoords && (
                 <div className="mt-2 p-2 bg-red-100 border border-red-200 rounded text-sm text-red-700">
                   <p>{locationError}</p>
                   <p className="text-xs mt-1">Please enable location access to find nearby hospitals</p>
                 </div>
               )}
-              
-              {latitude && longitude && (
+
+              {effectiveLatitude !== null && effectiveLongitude !== null && (
                 <div className="mt-2 text-sm text-blue-700">
-                  <p>📍 Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}</p>
-                  <p className="text-xs">Showing hospitals within 50km radius</p>
+                  <p>📍 Location: {effectiveLatitude.toFixed(4)}, {effectiveLongitude.toFixed(4)}{useManualCoords ? ' (Manual)' : ''}</p>
+                  <p className="text-xs">
+                    Showing hospitals within {effectiveRadius}km radius using {dataSource === 'osm' ? '🌍 Live Data' : '🏥 Curated Data'}
+                    {nearbyHospitals.length > 0 && ` • Found ${nearbyHospitals.length} hospitals`}
+                  </p>
                 </div>
               )}
             </div>
-            
+
             <div>
               {nearbyLoading ? (
                 <div className="p-8 flex justify-center">
                   <LoadingSpinner size="lg" />
                 </div>
-              ) : locationError ? (
+              ) : (!useManualCoords && locationError) ? (
                 <div className="p-8 text-center">
                   <Navigation className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <p className="text-muted-foreground mb-2">Location access required</p>
@@ -583,7 +691,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Emergency FAB */}
       <Button
         onClick={handleEmergencyCall}
         className="fixed bottom-20 right-4 w-14 h-14 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 flex items-center justify-center z-40"
