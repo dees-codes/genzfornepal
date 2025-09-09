@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useNearbyHospitals } from "@/hooks/useNearbyHospitals";
+import { useSupabaseNearbyHospitals, useSupabaseHospitals } from "@/hooks/useSupabaseHospitals";
 import { HospitalCard } from "@/components/HospitalCard";
 import { BloodRequestCard } from "@/components/BloodRequestCard";
 import { LoadingSpinner, LoadingOverlay } from "@/components/LoadingSpinner";
@@ -39,7 +40,6 @@ export default function Home() {
   const [manualLat, setManualLat] = useState<string>('');
   const [manualLng, setManualLng] = useState<string>('');
   const [manualRadius, setManualRadius] = useState<string>('50');
-  const [dataSource, setDataSource] = useState<'osm' | 'mock'>('osm');
 
   // Initialize from URL params if present
   useEffect(() => {
@@ -70,30 +70,23 @@ export default function Home() {
   const effectiveLongitude: number | null = useManualCoords && manualLng !== '' ? Number(manualLng) : (longitude ?? null);
   const effectiveRadius: number = useManualCoords && manualRadius !== '' ? Number(manualRadius) : 50;
 
-  // Nearby hospitals
-  const { data: nearbyHospitals = [], isLoading: nearbyLoading } = useNearbyHospitals({
+  // Nearby hospitals (using Supabase)
+  const { data: nearbyHospitals = [], isLoading: nearbyLoading } = useSupabaseNearbyHospitals({
     latitude: effectiveLatitude,
     longitude: effectiveLongitude,
     radius: effectiveRadius,
     enabled: activeTab === 'nearby' && effectiveLatitude !== null && effectiveLongitude !== null,
-    source: dataSource,
+    emergencyOnly: hospitalFilters.isEmergency,
+    freeOnly: hospitalFilters.isFree,
+    district: hospitalFilters.district || undefined,
   });
 
-  // Fetch hospitals
-  const { data: hospitals = [], isLoading: hospitalsLoading } = useQuery<Hospital[]>({
-    queryKey: ['hospitals', hospitalFilters, hospitalSearch],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (hospitalFilters.district) params.append('district', hospitalFilters.district);
-      if (hospitalFilters.isFree) params.append('isFree', 'true');
-      if (hospitalFilters.isEmergency) params.append('isEmergency', 'true');
-      if (hospitalSearch) params.append('search', hospitalSearch);
-      
-      const url = `/api/hospitals${params.toString() ? `?${params.toString()}` : ''}`;
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-      return res.json();
-    },
+  // Fetch hospitals (using Supabase)
+  const { data: hospitals = [], isLoading: hospitalsLoading } = useSupabaseHospitals({
+    district: hospitalFilters.district || undefined,
+    emergencyOnly: hospitalFilters.isEmergency,
+    freeOnly: hospitalFilters.isFree,
+    search: hospitalSearch || undefined,
     enabled: activeTab === 'hospitals',
   });
 
@@ -511,25 +504,8 @@ export default function Home() {
                 </Button>
               </div>
 
-              {/* Data source and manual coordinates controls */}
+              {/* Manual coordinates controls */}
               <div className="mt-3 bg-white border rounded p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium">Data Source:</label>
-                    <select 
-                      value={dataSource} 
-                      onChange={(e) => setDataSource(e.target.value as 'osm' | 'mock')}
-                      className="text-xs border rounded px-2 py-1"
-                    >
-                      <option value="osm">🌍 Live Data (OpenStreetMap)</option>
-                      <option value="mock">🏥 Curated Nepal Hospitals</option>
-                    </select>
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    {dataSource === 'osm' ? 'Real-time' : 'Verified'}
-                  </span>
-                </div>
-                
                 <div className="flex items-center gap-2">
                   <input
                     id="toggle-manual"
@@ -597,7 +573,7 @@ export default function Home() {
                 <div className="mt-2 text-sm text-blue-700">
                   <p>📍 Location: {effectiveLatitude.toFixed(4)}, {effectiveLongitude.toFixed(4)}{useManualCoords ? ' (Manual)' : ''}</p>
                   <p className="text-xs">
-                    Showing hospitals within {effectiveRadius}km radius using {dataSource === 'osm' ? '🌍 Live Data' : '🏥 Curated Data'}
+                    Showing hospitals within {effectiveRadius}km radius
                     {nearbyHospitals.length > 0 && ` • Found ${nearbyHospitals.length} hospitals`}
                   </p>
                 </div>
