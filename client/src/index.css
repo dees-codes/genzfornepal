@@ -5,25 +5,25 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(240 10% 3.9%);
+  --background: hsl(0 0% 97%);
+  --foreground: hsl(0 0% 9%);
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 3.9%);
+  --card-foreground: hsl(0 0% 9%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 3.9%);
-  --primary: hsl(0 72% 51%);
+  --popover-foreground: hsl(0 0% 9%);
+  --primary: hsl(225 83% 53%); /* Nepal Blue */
   --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(217 80% 55%);
+  --secondary: hsl(348 91% 40%); /* Nepal Red */
   --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: hsl(25 80% 58%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
+  --muted: hsl(210 40% 98%);
+  --muted-foreground: hsl(215 13% 34%);
+  --accent: hsl(210 100% 95%); /* Light Blue accent */
+  --accent-foreground: hsl(225 83% 53%);
+  --destructive: hsl(348 91% 40%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(0 72% 51%);
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 91%);
+  --ring: hsl(225 83% 53%);
   --chart-1: hsl(0 72% 51%);
   --chart-2: hsl(159.7826 100% 36.0784%);
   --chart-3: hsl(42.0290 92.8251% 56.2745%);
@@ -54,25 +54,25 @@
 }
 
 .dark {
-  --background: hsl(0 0% 0%);
-  --foreground: hsl(200 6.6667% 91.1765%);
-  --card: hsl(228 9.8039% 10%);
-  --card-foreground: hsl(0 0% 85.0980%);
-  --popover: hsl(0 0% 0%);
-  --popover-foreground: hsl(200 6.6667% 91.1765%);
-  --primary: hsl(0 72% 51%);
+  --background: hsl(0 0% 7%); /* Dark black */
+  --foreground: hsl(0 0% 95%);
+  --card: hsl(0 0% 12%);
+  --card-foreground: hsl(0 0% 95%);
+  --popover: hsl(0 0% 7%);
+  --popover-foreground: hsl(0 0% 95%);
+  --primary: hsl(225 83% 53%); /* Nepal Blue */
   --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(195.0000 15.3846% 94.9020%);
-  --secondary-foreground: hsl(210 25% 7.8431%);
-  --muted: hsl(0 0% 9.4118%);
-  --muted-foreground: hsl(210 3.3898% 46.2745%);
-  --accent: hsl(25 80% 58%);
+  --secondary: hsl(348 91% 40%); /* Nepal Red */
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(0 0% 12%);
+  --muted-foreground: hsl(215 14% 71%);
+  --accent: hsl(225 83% 53%);
   --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
+  --destructive: hsl(348 91% 40%);
   --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(210 5.2632% 14.9020%);
-  --input: hsl(207.6923 27.6596% 18.4314%);
-  --ring: hsl(0 72% 51%);
+  --border: hsl(215 27% 17%);
+  --input: hsl(215 27% 17%);
+  --ring: hsl(225 83% 53%);
   --chart-1: hsl(0 72% 51%);
   --chart-2: hsl(159.7826 100% 36.0784%);
   --chart-3: hsl(42.0290 92.8251% 56.2745%);
@@ -146,5 +146,67 @@
   /* Emergency shadow for FAB */
   .fab-emergency {
     box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
+  }
+
+  /* One Piece themed elements */
+  .straw-hat-border {
+    border: 3px solid hsl(48 96% 50%); /* Straw hat yellow */
+    border-radius: 50%;
+  }
+
+  .pirate-flag-bg {
+    background: linear-gradient(135deg, hsl(0 0% 7%) 0%, hsl(0 0% 15%) 100%);
+  }
+
+  .nepal-gradient {
+    background: linear-gradient(45deg, hsl(225 83% 53%) 0%, hsl(348 91% 40%) 100%);
+  }
+
+  .jolly-roger {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  }
+
+  /* Nepal flag colors */
+  .nepal-red {
+    background-color: hsl(348 91% 40%);
+  }
+
+  .nepal-blue {
+    background-color: hsl(225 83% 53%);
+  }
+
+  /* One Piece adventure theme */
+  .adventure-card {
+    background: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
+    border: 2px solid hsl(214 32% 91%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .adventure-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Anime-style animations */
+  .bounce-in {
+    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  @keyframes bounceIn {
+    0% {
+      transform: scale(0.3);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
