@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Search, MapPin, Phone, Menu, LogOut, Plus, CheckCircle, Database } from "lucide-react";
+import { Heart, Search, MapPin, Phone, Menu, LogOut, Plus, CheckCircle, Database, Anchor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { BloodRequestCard } from "@/components/BloodRequestCard";
 import { LoadingSpinner, LoadingOverlay } from "@/components/LoadingSpinner";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Hospital, BloodRequest } from "@shared/schema";
+import jollyRogerImg from "@assets/image_1757377928357.png";
+import nepalFlagImg from "@assets/nepal_1757377953102.png";
 
 type TabType = 'hospitals' | 'blood' | 'admin';
 
@@ -133,21 +135,39 @@ export default function Home() {
   };
 
   const renderHeader = () => (
-    <header className="bg-primary text-primary-foreground p-4 sticky top-0 z-40">
+    <header className="nepal-gradient text-white p-4 sticky top-0 z-40 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Heart className="w-5 h-5" />
-          <h1 className="text-lg font-bold">Emergency Health</h1>
+          <div className="w-8 h-8 bg-white rounded-full p-1">
+            <img 
+              src={jollyRogerImg} 
+              alt="Crew Flag" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold">🏴‍☠️ Medical Crew</h1>
+            <p className="text-xs opacity-90">Nepal Adventure</p>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowMenu(!showMenu)}
-          className="text-primary-foreground hover:bg-primary-foreground/10 min-h-[44px] min-w-[44px]"
-          data-testid="button-menu"
-        >
-          <Menu className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-5">
+            <img 
+              src={nepalFlagImg} 
+              alt="Nepal" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowMenu(!showMenu)}
+            className="text-white hover:bg-white/10 min-h-[44px] min-w-[44px]"
+            data-testid="button-menu"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
       
       {showMenu && (
@@ -205,12 +225,12 @@ export default function Home() {
           onClick={() => setActiveTab('hospitals')}
           className={`flex-1 py-3 px-4 text-sm font-medium rounded-none ${
             activeTab === 'hospitals' 
-              ? 'text-primary border-b-2 border-primary bg-red-50' 
+              ? 'text-primary border-b-2 border-primary bg-blue-50' 
               : 'text-muted-foreground hover:text-foreground'
           }`}
           data-testid="tab-hospitals"
         >
-          🏥 Hospitals
+          ⚓ Medical Ports
         </Button>
         <Button
           variant="ghost"
@@ -222,19 +242,19 @@ export default function Home() {
           }`}
           data-testid="tab-blood"
         >
-          🩸 Blood Banks
+          🩸 Blood Treasure
         </Button>
         <Button
           variant="ghost"
           onClick={() => setActiveTab('admin')}
           className={`flex-1 py-3 px-4 text-sm font-medium rounded-none ${
             activeTab === 'admin' 
-              ? 'text-primary border-b-2 border-primary bg-red-50' 
+              ? 'text-primary border-b-2 border-primary bg-yellow-50' 
               : 'text-muted-foreground hover:text-foreground'
           }`}
           data-testid="tab-admin"
         >
-          🛡️ Admin
+          🏴‍☠️ Captain's Deck
         </Button>
       </div>
     </nav>
